@@ -1,0 +1,9 @@
+.bulletin-view-mode-full img { margin: 0 0 20px 0; }
+@media screen and (min-width: 768px) { .bulletin-view-mode-full img { float: right; margin: 0 0 20px 20px; } }
+
+.node-type-bulletin .node-unpublished #main-content-wrapper { background: none; }
+
+#views-exposed-form-bulletins-page-1 .views-exposed-form .views-exposed-widgets { display: block; flex-direction: column; }
+#views-exposed-form-bulletins-page-1 .views-exposed-form .views-exposed-widgets > * { margin-bottom: 20px; }
+#views-exposed-form-bulletins-page-1 .views-exposed-form .views-exposed-widgets .views-submit-button, #views-exposed-form-bulletins-page-1 .views-exposed-form .views-exposed-widgets .views-reset-button { float: left; }
+#views-exposed-form-bulletins-page-1 .form-item label { font-weight: normal; }

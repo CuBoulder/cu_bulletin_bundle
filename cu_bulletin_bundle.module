@@ -1,0 +1,298 @@
+<?php
+
+/**
+ * @file
+ * Code for the CU Bulletin Bundle feature.
+ */
+
+include_once 'cu_bulletin_bundle.features.inc';
+
+function cu_bulletin_bundle_secure_permissions($role) {
+   $permissions = array(
+    'anonymous user' => array(),
+    'authenticated user' => array(
+      'create bulletin content',
+      'delete own bulletin content',
+      'edit own bulletin content',
+      'view own unpublished content',
+      'view submitted bulletins',
+      'access navbar',
+      'view the administration theme',
+      'administer nodes',
+      'authenticated content editing',
+      'use text format authenticated',
+    ),
+    'administrator' => array(
+      'create bulletin content',
+      'delete any bulletin content',
+      'delete own bulletin content',
+      'edit any bulletin content',
+      'edit own bulletin content',
+      'publish bulletin content',
+      'view submitted bulletins',
+      'use text format authenticated',
+      'extended bulletin access',
+    ),
+    'developer' => array(
+      'create bulletin content',
+      'delete any bulletin content',
+      'delete own bulletin content',
+      'edit any bulletin content',
+      'edit own bulletin content',
+      'publish bulletin content',
+      'view submitted bulletins',
+      'use text format authenticated',
+      'extended bulletin access',
+    ),
+    'site_owner' => array(
+      'create bulletin content',
+      'delete any bulletin content',
+      'delete own bulletin content',
+      'edit any bulletin content',
+      'edit own bulletin content',
+      'publish bulletin content',
+      'view submitted bulletins',
+      'use text format authenticated',
+      'extended bulletin access',
+    ),
+    'site_editor' => array(
+      'create bulletin content',
+      'delete any bulletin content',
+      'delete own bulletin content',
+      'edit any bulletin content',
+      'edit own bulletin content',
+      'publish bulletin content',
+      'view submitted bulletins',
+      'use text format authenticated',
+      'extended bulletin access',
+    ),
+  );
+  if (isset($permissions[$role])) {
+    return $permissions[$role];
+  }
+}
+
+function cu_bulletin_bundle_menu() {
+  $items = array();
+
+  $items['node/%node/view-submissions'] = array(
+    'title' => 'View My Bulletins',
+    'page callback' => 'drupal_goto',
+    'page arguments' => array('admin/dashboard/authored'),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+
+  return $items;
+}
+
+function cu_bulletin_bundle_menu_alter(&$items) {
+  $items['admin/content']['access callback'] = '_cu_bulletin_bundle_content_access';
+  $items['admin/dashboard']['page callback'] = '_cu_bulletin_bundle_dashboard';
+  $items['admin/dashboard/user']['page callback'] = '_cu_bulletin_bundle_dashboard';
+}
+
+function cu_bulletin_bundle_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'menu_alter') {
+    $group = $implementations['cu_bulletin_bundle'];
+    unset($implementations['cu_bulletin_bundle']);
+    $implementations['cu_bulletin_bundle'] = $group;
+  }
+}
+
+function _cu_bulletin_bundle_content_access() {
+
+  if (user_access('extended bulletin access')) {
+    return true;
+  }
+  elseif (user_access('authenticated content editing')) {
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter.
+ *
+ * Removed access from vertical tab fields.
+ * If bulletin is approved||published, set form to disabled.
+ */
+function cu_bulletin_bundle_form_bulletin_node_form_alter(&$form, &$form_state, $form_id) {
+  if (!user_access('publish bulletin content')) {
+    $form['additional_settings']['#access'] = FALSE;
+    $form['field_bulletin_approved']['#disabled'] = TRUE;
+    if ($form['#node']->field_bulletin_approved[LANGUAGE_NONE][0]['value'] || $form['#node']->status) {
+      drupal_set_message('This bulletin has been approved and cannot be edited.', 'warning');
+      $form['#disabled'] = TRUE;
+    }
+  }
+}
+
+/**
+ * New dashboard callback to remove the who's online block.
+ */
+function _cu_bulletin_bundle_dashboard() {
+  global $user;
+  $output = array();
+  //$output['#markup'] = 'aaa';
+  if (count($user->roles) == 1 && (current($user->roles) == 'authenticated user')) {
+    $realname = _get_realname($user->uid);
+    $vars['user'] = (array) $user;
+    $excluded_roles = array(
+      'authenticated user',
+    );
+    foreach ($vars['user']['roles'] as $rid => $role) {
+      if (in_array($role, $excluded_roles)) {
+        unset($vars['user']['roles'][$rid]);
+      }
+    }
+
+    // Add status.
+    $express_status = module_invoke('cu_status', 'block_view', 'cu_status');
+    $dash['right']['widgets']['status']['title'] = 'System Status';
+    $dash['right']['widgets']['status']['content']['#markup'] = $express_status['content'];
+
+    // Display real name if available.
+    $dash['left']['widgets']['user']['title'] = function_exists('realname_load') ? realname_load($user) : $user->name;
+    $dash['left']['widgets']['user']['content']['#markup'] = theme('express_dashboard_user_profile', (array) $vars);
+
+    $output['#markup'] = express_dashboards_dashboard_output('_cu_bulletin_bundle_dashboard_user', 'user');
+
+  }
+  else {
+    $output['#markup'] =
+    express_dashboards_dashboard_output('express_dashboard_user_content', 'user');
+  }
+  return $output;
+}
+
+function _cu_bulletin_bundle_dashboard_user() {
+  global $user;
+  $realname = _get_realname($user->uid);
+  $vars['user'] = (array) $user;
+  $excluded_roles = array(
+    'authenticated user',
+  );
+  foreach ($vars['user']['roles'] as $rid => $role) {
+    if (in_array($role, $excluded_roles)) {
+      unset($vars['user']['roles'][$rid]);
+    }
+  }
+
+  // Add status.
+  $express_status = module_invoke('cu_status', 'block_view', 'cu_status');
+  $dash['right']['widgets']['status']['title'] = 'System Status';
+  $dash['right']['widgets']['status']['content']['#markup'] = $express_status['content'];
+
+  // Display real name if available.
+  $dash['left']['widgets']['user']['title'] = function_exists('realname_load') ? realname_load($user) : $user->name;
+  $dash['left']['widgets']['user']['content']['#markup'] = theme('express_dashboard_user_profile', (array) $vars);
+
+  return $dash;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function cu_bulletin_bundle_permission() {
+  return array(
+    'publish bulletin content' => array(
+      'title' => 'Publish Bulletin Content',
+      'description' => 'Change the publish status of bulletins',
+    ),
+    'view submitted bulletins' => array(
+      'title' => 'View Submitted Bulletins',
+      'description' => 'Change the publish status of bulletins',
+    ),
+    'authenticated content editing' => array(
+      'title' => 'Authenticated Content Editing',
+      'description' => 'This role can create content without additional roles',
+    ),
+    'extended bulletin access' => array(
+      'title' => 'Extended Bulletin Access',
+      'description' => 'Extend content access permissions',
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ *
+ * Let Drupal know that we've got bean--articles.tpl.php in our module
+ * directory.
+ */
+function cu_bulletin_bundle_theme_registry_alter(&$theme_registry) {
+  $module_path = drupal_get_path('module', 'cu_bulletin_bundle');
+  $theme_registry_copy = $theme_registry;
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'node', $module_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    if (isset($theme_registry[$h]['theme paths'])) {
+      $first_element = array_shift($theme_registry[$h]['theme paths']);
+      array_unshift($theme_registry[$h]['theme paths'], array_shift($theme_registry[$h]['theme paths']), $module_path);
+    }
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ *
+ * Set created date to publish date.
+ */
+function cu_bulletin_bundle_node_insert($node) {
+  if ($node->type == 'bulletin') {
+    $node->date = $node->field_bulletin_publish_date[LANGUAGE_NONE][0]['value'];
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ *
+ * Set publish date to created date.
+ */
+function cu_bulletin_bundle_node_update($node) {
+  if ($node->type == 'bulletin') {
+    $node->date = $node->field_bulletin_publish_date[LANGUAGE_NONE][0]['value'];
+  }
+}
+
+function cu_bulletin_bundle_approved_values() {
+  return array(
+    0 => 'No',
+    1 => 'Yes',
+  );
+}
+
+function cu_bulletin_bundle_category_options() {
+  $options = array(
+    'announcements' => 'Announcements',
+    'clubs' => 'Clubs',
+    'courses' => 'Courses',
+    'engage' => 'Engage',
+    'family' => 'Family',
+    'health-wellness' => 'Health &amp; Wellness',
+    'housing' => 'Housing',
+    'jobs-internships' => 'Jobs &amp; Internships',
+    'meetings' => 'Meetings',
+    'research' => 'Research',
+    'safety' => 'Safety',
+    'scholarships-grants' => 'Scholarships &amp; Grants',
+    'sports-recreation' => 'Sports &amp; Recreation',
+    'surveys' => 'Surveys',
+    'sustainabliltiy' => 'Sustainability',
+    'tech' => 'Tech',
+    'training' => 'Training',
+    'transport-construction' => 'Transport &amp; Construction',
+  );
+  return $options;
+}
+
+function cu_bulletin_bundle_audience_options() {
+  $options = array(
+    'faculty-staff' => 'Faculty/Staff',
+    'students' => 'Students',
+  );
+  return $options;
+}
