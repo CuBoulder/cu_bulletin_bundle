@@ -433,14 +433,15 @@ function cu_bulletin_bundle_views_default_views() {
   $handler->display->display_options['fields']['field_bulletin_approved']['id'] = 'field_bulletin_approved';
   $handler->display->display_options['fields']['field_bulletin_approved']['table'] = 'field_data_field_bulletin_approved';
   $handler->display->display_options['fields']['field_bulletin_approved']['field'] = 'field_bulletin_approved';
-  $handler->display->display_options['fields']['field_bulletin_approved']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['field_bulletin_approved']['alter']['text'] = 'Yes';
+  $handler->display->display_options['fields']['field_bulletin_approved']['alter']['word_boundary'] = FALSE;
+  $handler->display->display_options['fields']['field_bulletin_approved']['alter']['ellipsis'] = FALSE;
   $handler->display->display_options['fields']['field_bulletin_approved']['element_type'] = '0';
   $handler->display->display_options['fields']['field_bulletin_approved']['element_wrapper_type'] = '0';
   $handler->display->display_options['fields']['field_bulletin_approved']['element_default_classes'] = FALSE;
   $handler->display->display_options['fields']['field_bulletin_approved']['empty'] = 'No';
   $handler->display->display_options['fields']['field_bulletin_approved']['empty_zero'] = TRUE;
-  $handler->display->display_options['fields']['field_bulletin_approved']['type'] = 'list_key';
+  $handler->display->display_options['fields']['field_bulletin_approved']['hide_alter_empty'] = FALSE;
   $handler->display->display_options['fields']['field_bulletin_approved']['field_api_classes'] = TRUE;
   /* Field: Content: Published */
   $handler->display->display_options['fields']['status']['id'] = 'status';
