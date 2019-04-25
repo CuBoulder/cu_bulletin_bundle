@@ -304,7 +304,7 @@ function cu_bulletin_bundle_field_default_field_instances() {
     'label' => 'Image',
     'required' => 0,
     'settings' => array(
-      'alt_field' => 0,
+      'alt_field' => 1,
       'default_image' => 0,
       'file_directory' => 'bulletin-images',
       'file_extensions' => 'png gif jpg',
@@ -401,7 +401,7 @@ function cu_bulletin_bundle_field_default_field_instances() {
   $field_instances['node-bulletin-field_bulletin_publish_date'] = array(
     'bundle' => 'bulletin',
     'deleted' => 0,
-    'description' => '',
+    'description' => 'Enter the date you would like your bulletin published.  Please allow 5 business days. While every effort will be made to approve your bulletin by this date we cannot guarantee it will be approved.',
     'display' => array(
       'default' => array(
         'label' => 'hidden',
@@ -518,6 +518,7 @@ function cu_bulletin_bundle_field_default_field_instances() {
   t('Category');
   t('Contact Email');
   t('Contact Name');
+  t('Enter the date you would like your bulletin published.  Please allow 5 business days. While every effort will be made to approve your bulletin by this date we cannot guarantee it will be approved.');
   t('Image');
   t('Publish Date');
   t('Website');
