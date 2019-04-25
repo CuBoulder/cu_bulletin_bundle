@@ -237,24 +237,13 @@ function cu_bulletin_bundle_theme_registry_alter(&$theme_registry) {
 }
 
 /**
- * Implements hook_node_insert().
- *
- * Set created date to publish date.
- */
-function cu_bulletin_bundle_node_insert($node) {
-  if ($node->type == 'bulletin') {
-    $node->date = $node->field_bulletin_publish_date[LANGUAGE_NONE][0]['value'];
-  }
-}
-
-/**
- * Implements hook_node_update().
+ * Implements hook_node_presave().
  *
  * Set publish date to created date.
  */
-function cu_bulletin_bundle_node_update($node) {
+function cu_bulletin_bundle_node_presave($node) {
   if ($node->type == 'bulletin') {
-    $node->date = $node->field_bulletin_publish_date[LANGUAGE_NONE][0]['value'];
+    $node->created = strtotime($node->field_bulletin_publish_date[LANGUAGE_NONE][0]['value']);
   }
 }
 
