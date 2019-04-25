@@ -285,3 +285,15 @@ function cu_bulletin_bundle_audience_options() {
   );
   return $options;
 }
+
+/**
+ * Implements module_preprocess_page().
+ *
+ * Add "Unpublished" to page title if bulletin status == 0.
+ */
+function cu_bulletin_bundle_preprocess_page(&$page) {
+  if (!empty($page['node']) && $page['node']->type == 'bulletin' && $page['node']->status == 0) {
+    $title = $page['node']->title;
+    drupal_set_title('Unpublished: ' . $title);
+  }
+}
