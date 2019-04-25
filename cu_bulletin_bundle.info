@@ -61,3 +61,5 @@ features[views_view][] = bulletins
 features[views_view][] = cu_bulletin_bundle_administration_overview
 features[wysiwyg][] = authenticated
 features_exclude[dependencies][views] = views
+
+bundle_roles[] = developer
