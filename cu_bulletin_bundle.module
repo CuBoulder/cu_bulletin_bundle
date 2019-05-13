@@ -122,10 +122,26 @@ function cu_bulletin_bundle_form_bulletin_node_form_alter(&$form, &$form_state, 
   if (!user_access('publish bulletin content')) {
     $form['additional_settings']['#access'] = FALSE;
     $form['field_bulletin_approved']['#disabled'] = TRUE;
-    if ($form['#node']->field_bulletin_approved[LANGUAGE_NONE][0]['value'] || $form['#node']->status) {
+    if (!empty($form['#node']->field_bulletin_approved) && $form['#node']->field_bulletin_approved[LANGUAGE_NONE][0]['value'] || $form['#node']->status) {
       drupal_set_message('This bulletin has been approved and cannot be edited.', 'warning');
       $form['#disabled'] = TRUE;
     }
+  }
+}
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function cu_bulletin_bundle_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_login':
+    case 'user_login_block':
+      if ($key = array_search('cu_ldap_user_login_validate', $form['#validate'])) {
+        unset($form['#validate'][$key]);
+      }
+      break;
   }
 }
 
